@@ -12,24 +12,23 @@ use crate::{
 };
 
 pub struct StateRepositories {
-    pub user: Arc<UserRepository>,
+    pub user: UserRepository,
 }
 
-#[derive(Clone)]
 pub struct StateServices {
-    pub user: Arc<UserService>,
+    pub user: UserService,
 }
 
 pub fn new(db_pool: PGPool) -> Router {
     // Init the repositories here
     let repos = Arc::new(StateRepositories {
-        user: Arc::new(persistence::user::new_user_repository(db_pool.clone())),
+        user: persistence::user::new_user_repository(db_pool.clone()),
     });
 
     // Init the services here
-    let services = StateServices {
-        user: Arc::new(services::user::new_user_service(repos.clone())),
-    };
+    let services = Arc::new(StateServices {
+        user: services::user::new_user_service(repos.clone()),
+    });
 
     // Init the routes here
     Router::new()

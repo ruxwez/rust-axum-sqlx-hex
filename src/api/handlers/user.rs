@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use axum::{Json, extract::State, http::StatusCode};
 
 use crate::{
@@ -9,7 +11,7 @@ use crate::{
 };
 
 pub async fn create_user(
-    State(services): State<StateServices>,
+    State(services): State<Arc<StateServices>>,
     Json(payload): Json<CreateUserPayload>,
 ) -> (StatusCode, Json<Response<entities::User>>) {
     let user = match services
