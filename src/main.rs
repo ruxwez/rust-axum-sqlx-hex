@@ -1,68 +1,24 @@
-//! The main entry point for the application.
+use clap::Parser;
 
-use std::sync::Arc;
-use axum::{Extension, Router};
-use tokio::net::TcpListener;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use crate::{api::factory, config::Config, infrastructure::database::postgres};
 
-mod adapters;
+mod api;
 mod application;
-mod domain;
+mod config;
 mod infrastructure;
-
-use crate::{
-    adapters::{
-        api::{
-            organization_api::create_organization_routes, user_api::create_user_routes,
-        },
-        repositories::{
-            organization_repository::OrganizationRepositoryImpl,
-            user_repository::UserRepositoryImpl,
-        },
-    },
-    application::services::{
-        organization_service::OrganizationServiceImpl, user_service::UserServiceImpl,
-    },
-    infrastructure::database::init_db,
-};
 
 #[tokio::main]
 async fn main() {
-    // Load environment variables from .env file
+    // Instance dotenv to load environment variables from a .env file
     dotenvy::dotenv().ok();
 
-    // Initialize tracing
-    tracing_subscriber::registry()
-        .with(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "example_tokio_sqlite=debug".into()),
-        )
-        .with(tracing_subscriber::fmt::layer())
-        .init();
+    // Parse configuration
+    let cfg = Config::parse();
+    let db = postgres::new_postgres_pool(&cfg.database_url).await;
 
-    // Initialize the database
-    let db_pool = init_db().await.unwrap();
+    let app = factory::new(db.clone());
 
-    // Create the repositories
-    let user_repository = Arc::new(UserRepositoryImpl::new(db_pool.clone()));
-    let organization_repository =
-        Arc::new(OrganizationRepositoryImpl::new(db_pool.clone()));
-
-    // Create the services
-    let user_service = Arc::new(UserServiceImpl::new(user_repository.clone()));
-    let organization_service = Arc::new(OrganizationServiceImpl::new(
-        organization_repository.clone(),
-    ));
-
-    // Create the Axum router
-    let app = Router::new()
-        .merge(create_user_routes::<UserServiceImpl<UserRepositoryImpl>>())
-        .merge(create_organization_routes::<OrganizationServiceImpl<OrganizationRepositoryImpl>>())
-        .layer(Extension(user_service))
-        .layer(Extension(organization_service));
-
-    // Start the server
-    let listener = TcpListener::bind("127.0.0.1:3000").await.unwrap();
-    tracing::debug!("listening on {}", listener.local_addr().unwrap());
+    // Listen on port 3000
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
 }
