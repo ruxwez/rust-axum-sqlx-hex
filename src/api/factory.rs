@@ -1,8 +1,9 @@
 use std::sync::Arc;
 
-use axum::Router;
+use axum::{Router, routing::post};
 
 use crate::{
+    api::handlers,
     application::services::{self, user::UserService},
     infrastructure::{
         database::postgres::PGPool,
@@ -31,5 +32,7 @@ pub fn new(db_pool: PGPool) -> Router {
     };
 
     // Init the routes here
-    Router::new().with_state(services)
+    Router::new()
+        .route("/api/user", post(handlers::user::create_user))
+        .with_state(services)
 }
