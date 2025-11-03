@@ -1,21 +1,17 @@
 use std::sync::Arc;
 
-use crate::infrastructure::persistence::user::UserRepository;
+use crate::api::factory::StateRepositories;
 
 pub struct UserService {
-    user_repo: Arc<UserRepository>,
+    repos: Arc<StateRepositories>,
 }
 
-pub fn new_user_service(user_repo: Arc<UserRepository>) -> UserService {
-    UserService { user_repo }
+pub fn new_user_service(repos: Arc<StateRepositories>) -> UserService {
+    UserService { repos }
 }
 
 impl UserService {
-    pub fn create_user(&self) {
-        // Logic to create a user
-    }
+    pub fn create_user(&self) {}
 
-    pub fn get_user(&self) {
-        // Logic to get a user
-    }
+    pub fn get_user(&self) {}
 }

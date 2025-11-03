@@ -5,6 +5,7 @@ use crate::{api::factory, config::Config, infrastructure::database::postgres};
 mod api;
 mod application;
 mod config;
+mod domain;
 mod infrastructure;
 
 #[tokio::main]
