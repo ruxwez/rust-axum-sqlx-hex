@@ -25,6 +25,4 @@ impl UserService {
             .await
             .ok()
     }
-
-    pub fn get_user(&self) {}
 }

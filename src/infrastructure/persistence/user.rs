@@ -34,9 +34,4 @@ impl UserRepository {
 
         Ok(new_user)
     }
-
-    pub fn get_user_by_id(&self, user_id: i32) -> Result<Option<(i32, String, String)>, String> {
-        // Implementation for retrieving a user by ID from the database
-        Ok(None)
-    }
 }
